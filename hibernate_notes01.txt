@@ -1,0 +1,163 @@
+
+
+Hibernate is an Object-Relational Mapping (ORM) solution for JAVA.
+
+ It is an open source persistent framework created by Gavin King in 2001.
+
+Hibernate maps Java classes to database tables and from Java data types to SQL data types and relieves the developer from 95% of common data persistence related programming tasks.
+
+Hibernate sits between traditional Java objects and database server to handle all the works in persisting those objects based on the appropriate O/R mechanisms and patterns.
+
+
+Java Object --------------------------> ORM---------------------->RDBMS
+
+
+
+What is JPA?
+Java Persistence API (JPA) is a Java specification that provides certain functionality and standard to ORM tools. The javax.persistence package contains the JPA classes and interfaces.
+
+
+hibernate.cfg.xml
+hibernate.properties
+
+Hibernate Properties
+hibernate.dialect
+hibernate.connection.driver_class
+hibernate.connection.url
+hibernate.connection.username
+hibernate.connection.password
+hibernate.connection.pool_size
+hibernate.connection.autocommit
+
+hibernate.cfg.xml
+
+<?xml version="1.0" encoding="UTF-8"?>  
+<!DOCTYPE hibernate-configuration PUBLIC  
+        "-//Hibernate/Hibernate Configuration DTD 5.3//EN"  
+        "http://www.hibernate.org/dtd/hibernate-configuration-5.3.dtd">
+<hibernate-configuration>
+	<session-factory>
+		<property name="hbm2ddl.auto">create</property>
+		<property name="hibernate.connection.driver_class">com.mysql.jdbc.Driver</property>
+        <property name="hibernate.connection.url">jdbc:mysql://localhost:3306/trgdb</property>
+        <property name="hibernate.connection.username">root</property>
+        <property name="hibernate.connection.password"></property>
+        <property name="hibernate.connection.pool_size">5</property>
+        <property name="hibernate.current_session_context_class">thread</property>
+        <property name="hibernate.show_sql">true</property>
+        <property name="hibernate.dialect">org.hibernate.dialect.MySQL55Dialect</property>
+		<mapping class="com.training.hibernate.Employee" />
+		<mapping class="com.training.marks.Student" />
+		<mapping class="com.training.marks.MarksDetails" />
+	</session-factory>
+</hibernate-configuration>
+
+
+SessionFactory
+SessionFactory is an interface. SessionFactory can be created by providing Configuration object, which will contain all DB related property details pulled from either hibernate.cfg.xml file or hibernate.properties file. SessionFactory is a factory for Session objects.
+
+
+
+Session 
+A Session is used to get a physical connection with a database. The Session object is lightweight and designed to be instantiated each time an interaction is needed with the database. Persistent objects are saved and retrieved through a Session object.
+
+
+Query
+It allows applications to query the database for one or more stored objects. 
+
+First-level cache 
+It represents the default cache used by Hibernate Session object while interacting with the database. 
+All requests from the Session object to the database must pass through the first-level cache or session cache. 
+
+Transaction 
+Enables you to achieve data consistency, and rollback incase something goes unexpected.
+
+Persistent objects
+These are plain old Java objects (POJOs), which get persisted as one of the rows in the related table in the database by hibernate.
+
+Second-level cache : It is used to store objects across sessions. This needs to be explicitly enabled and one would be required to provide the cache provider for a second-level cache. One of the common second-level cache providers is EhCache.
+
+Hibernate Entity / Persistence LifeCycle States
+
+Transient Object
+Transient objects exist in heap memory. Hibernate does not manage transient objects or persist changes to transient objects.
+To persist the changes to a transient object, you would have to ask the session to save the transient object to the database, at which point Hibernate assigns the object an identifier and marks the object as being in persistent state.
+
+
+Persistent Object
+Persistent objects exist in the database, and Hibernate manages the persistence for persistent objects.
+
+Detached Object
+Detached objects have a representation in the database, but changes to the object will not be reflected in the database, and vice-versa.
+A detached object can be created by closing the session that it was associated with, or by evicting it from the session with a call to the session’s evict() method.
+
+Newly created POJO object will be in the transient state. 
+Transient object doesn’t represent any row of the database i.e. not associated with any session object. It’s plain simple java object.
+
+Persistent object represent one row of the database and always associated with some unique hibernate session. Changes to persistent objects are tracked by hibernate and are saved into database when commit call happen.
+
+Detached objects are those who were once persistent in past, and now they are no longer persistent. To persist changes done in detached objects, you must reattach them to hibernate session.
+
+Removed objects are persistent objects that have been passed to the session’s remove() method and soon will be deleted as soon as changes held in the session will be committed to database.
+
+
+StandardServiceRegistry ssr=new StandardServiceRegistryBuilder().configure("hibernate.cfg.xml").build();  
+Metadata meta=new MetadataSources(ssr).getMetadataBuilder().build();  
+        
+SessionFactory factory=meta.getSessionFactoryBuilder().build();  
+Session session=factory.openSession();  
+       
+Transaction t=session.beginTransaction();    
+...................
+.............
+	   t.commit();    
+ 	   session.close();    
+  	   System.out.println("success");    
+
+
+
+@Entity		
+Marks a class as a Hibernate Entity (Mapped class)
+
+@Table		
+Maps this class with a database table specified by name modifier. If the name is not supplied it maps the class with a table 		having the same name as the class.
+
+@Id		
+Marks this class field as a primary key column.
+
+@GeneratedValue		
+Instructs database to generate a value for this field automatically.
+
+@Column	Name	
+Maps this field with table column specified by name and uses the field name if name modifier is absent.
+
+@OneToMany	
+cascade	It defines the flow of operations to associated entities. 
+By default, none of the operations are cascaded. 
+For e.g.: @OneToMany(cascade = CascadeType.ALL).
+
+mappedBy	
+This represent the entity that owns the relationship meaning the corresponding table that has foriegn key column and this element is specified on the non-owning side of the association. For e.g.: @OneToMany(mappedBy = "dept")
+
+targetEntity	
+If developers are using Java Generics to define the Collection, then this propery is optional. 
+It denotes the entity class that is target of the association. For e.g.: @OneToMany(target = Employee.class)
+
+fetch	
+By default fetch type is Lazy in all the relationship except for @OneToOne mapping. 
+It defines whether the associated entities be fetched lazily or eagerly. For e.g.: @OneToMany(fetch = FetchType.EAGER)
+
+
+Session load() 
+Hibernate’s Session interface provides several overloaded load() methods for loading entities from the database. Each load() method requires the object’s primary key as an identifier, and it is mandatory to provide it.
+
+Integer empId=1234
+EmployeeEntity emp1 = (EmployeeEntity) sessionTwo.load(EmployeeEntity.class, empId);
+
+
+session.get()
+The get() method is very much similar to load() method.
+
+Difference between load() and get() 
+In case of get() method, we will get return value as NULL if identifier is absent.
+But in case of load() method, we will get a runtime exception.
